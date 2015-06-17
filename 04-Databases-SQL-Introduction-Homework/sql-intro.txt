@@ -1,0 +1,6 @@
+Problem 1.	What is SQL? What is DML? What is DDL? Recite the most important SQL commands.
+Perform a research (e.g. in Google or Wikipedia) and provide an information about SQL, data manipulation language, data definition language and the most important SQL commands.
+
+SQL means Structured Query Language (SQL). It is a declarative language for query and manipulation of relational data.
+DML is Data Manipulation Language. Consists of: SELECT, INSERT, UPDATE, DELETE commands.
+DDL is Data Definition Language. Consists of CREATE, DROP, ALTER commands.
