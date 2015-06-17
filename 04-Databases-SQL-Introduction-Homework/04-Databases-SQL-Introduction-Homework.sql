@@ -1,3 +1,5 @@
+USE SoftUni
+
 --Problem 4.	Write a SQL query to find all information about all departments (use "SoftUni" database).
 
 SELECT D.DepartmentID, D.Name AS [Department Name], D.ManagerID, 
