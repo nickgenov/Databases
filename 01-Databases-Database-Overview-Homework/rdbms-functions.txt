@@ -1,0 +1,15 @@
+Problem 2.	Which are the Main Functions Performed by a RDBMS?
+
+A relational database management system (RDBMS) is a database management system (DBMS) that is based on the relational model as invented by E. F. Codd, of IBM's San Jose Research Laboratory. Many popular databases currently in use are based on the relational database model.
+
+RDBMSs are a common choice for the storage of information in new databases used for financial records, manufacturing and logistical information, personnel data, and other applications since the 1980s. Relational databases have often replaced legacy hierarchical databases and network databases because they are easier to understand and use. However, relational databases have been challenged by object databases, which were introduced in an attempt to address the object-relational impedance mismatch in relational databases, and XML databases.
+
+RDBMSs provide various functions that allow management of a database and its data which can be classified into four main functional groups:
+
+Data definition – Creation, modification and removal of definitions that define the organization of the data.
+
+Update – Insertion, modification, and deletion of the actual data.
+
+Retrieval – Providing information in a form directly usable or for further processing by other applications. The retrieved data may be made available in a form basically the same as it is stored in the database or in a new form obtained by altering or combining existing data from the database.
+
+Administration – Registering and monitoring users, enforcing data security, monitoring performance, maintaining data integrity, dealing with concurrency control, and recovering information that has been corrupted by some event such as an unexpected system failure.

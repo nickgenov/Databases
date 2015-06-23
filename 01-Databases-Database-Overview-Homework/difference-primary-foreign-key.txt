@@ -1,0 +1,7 @@
+Problem 4.	Difference between a Primary and Foreign Key
+
+A primary key cannot allow null (a primary key cannot be defined on columns that allow nulls). Each table cannot have more than one primary key. On some RDBMS a primary key generates a clustered index by default.
+
+In the context of relational databases, a foreign key is a field (or collection of fields) in one table that uniquely identifies a row of another table. In simpler words, the foreign key is defined in a second table, but it refers to the primary key in the first table. 
+
+A table can have more than one foreign key, but it can have only one primary key. 

@@ -1,0 +1,24 @@
+Problem 6.	Schema Normalization
+
+Database normalization is the process of organizing the attributes and tables of a relational database to minimize data redundancy.
+
+Normalization involves decomposing a table into less redundant (and smaller) tables but without losing information; defining foreign keys in the old table referencing the primary keys of the new ones. The objective is to isolate data so that additions, deletions, and modifications of an attribute can be made in just one table and then propagated through the rest of the database using the defined foreign keys.
+
+Problem 7.	Advantages of Normalized Databases
+
+Provide indexing
+
+When the developer creates a primary key constraint, SQL Server will automatically create a unique clustered index on the column(s) for which the constraint has been created. A clustered index is created if no other clustered index has been defined for the table. In most cases, the creation of a clustered index will speed up data access and may increase insert, update, and delete performance. I should note that, for benchmarking, vendors frequently remove indexes to increase performance.
+
+When you're creating primary keys, Microsoft recommends using integer primary keys because SQL Server is optimized to sort and index them. Likewise, when joining tables, creating nonclustered indexes on the foreign key column(s) will enhance performance.
+
+Minimize modification anomalies
+Modification anomalies arise when data is inserted, updated, or deleted, and information is lost in unexpected ways. In the database table in Figure A, rightsizing (deleting) an employee could delete information about a corporate building unless you store building information in a separate table.
+
+To create a new building entry, you would need to insert or update an employee record. This design also lends itself to a common problem in which you could have buildings with the same name spelled differently (e.g., Warehouse1, warehouse1, warehouse 1, etc.).
+
+Reduce table/row size
+By removing duplicate data, we conserve disk space and increase the amount of row space available for other fields. Row size can be an issue because the fundamental building block of a row in SQL Server is the page, which is 8 KB in SQL Server 7.0/2000. This means that a row can contain only 8060 bytes of data, excluding the text and image data types. Creating primary/foreign key constraints reduces the number of null or empty values in columns and thus reduces the size of the database.
+
+Enforce referential integrity
+I’ve seen many database problems that were caused by a simple lack of referential integrity. These problems usually manifest themselves as an inability to extract important data or relate information from one table with data in another table because there is nothing on which to join the two tables. For example, if no referential integrity existed in an e-commerce application, an order could exist without an associated customer. This is clearly a problem. Some designers might put logic in the GUI or middle tier to prevent this, but it would still be possible for someone to enter this information directly into the database via SQL statements. Developers typically use both front-end logic and referential integrity in the database to eliminate these concerns.
