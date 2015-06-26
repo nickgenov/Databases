@@ -27,7 +27,8 @@ CREATE TABLE `courses` (
   `name` varchar(100) NOT NULL,
   `professor_id` int(11) NOT NULL,
   `department_id` int(11) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_courses_professors1` FOREIGN KEY (`id`) REFERENCES `professors` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -50,7 +51,10 @@ DROP TABLE IF EXISTS `courses_students`;
 CREATE TABLE `courses_students` (
   `course_id` int(11) NOT NULL,
   `student_id` int(11) NOT NULL,
-  PRIMARY KEY (`course_id`,`student_id`)
+  PRIMARY KEY (`course_id`,`student_id`),
+  KEY `fk_courses_students_students1_idx` (`student_id`),
+  CONSTRAINT `fk_courses_students_courses1` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_courses_students_students1` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -74,7 +78,9 @@ CREATE TABLE `departments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
   `faculty_id` int(11) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `fk_departments_faculties1_idx` (`faculty_id`),
+  CONSTRAINT `fk_departments_faculties1` FOREIGN KEY (`faculty_id`) REFERENCES `faculties` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -97,7 +103,10 @@ DROP TABLE IF EXISTS `departments_professors`;
 CREATE TABLE `departments_professors` (
   `department_id` int(11) NOT NULL,
   `professor_id` int(11) NOT NULL,
-  PRIMARY KEY (`department_id`,`professor_id`)
+  PRIMARY KEY (`department_id`,`professor_id`),
+  KEY `fk_departments_professors_professors1_idx` (`professor_id`),
+  CONSTRAINT `fk_departments_professors_departments1` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_departments_professors_professors1` FOREIGN KEY (`professor_id`) REFERENCES `professors` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -167,7 +176,10 @@ DROP TABLE IF EXISTS `professors_tites`;
 CREATE TABLE `professors_tites` (
   `professor_id` int(11) NOT NULL,
   `title_id` int(11) NOT NULL,
-  PRIMARY KEY (`professor_id`,`title_id`)
+  PRIMARY KEY (`professor_id`,`title_id`),
+  KEY `fk_professors_tites_titles_idx` (`title_id`),
+  CONSTRAINT `fk_professors_tites_professors1` FOREIGN KEY (`professor_id`) REFERENCES `professors` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_professors_tites_titles` FOREIGN KEY (`title_id`) REFERENCES `titles` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -192,7 +204,9 @@ CREATE TABLE `students` (
   `first_name` varchar(50) NOT NULL,
   `last_name` varchar(50) NOT NULL,
   `faculty_id` int(11) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `fk_students_faculties1_idx` (`faculty_id`),
+  CONSTRAINT `fk_students_faculties1` FOREIGN KEY (`faculty_id`) REFERENCES `faculties` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -237,4 +251,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-06-25 16:27:34
+-- Dump completed on 2015-06-26 13:11:44
