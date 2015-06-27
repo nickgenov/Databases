@@ -2,8 +2,6 @@
 that take the minimal salary in the company.
 Use a nested SELECT statement.*/
 
---VLADO@SOFTUNI.BG
-
 SELECT 
 	E.FirstName, 
 	E.LastName, 
@@ -151,25 +149,25 @@ SELECT
 	D.Name AS [Department],	
 	COUNT(E.EmployeeID) AS [Employees Count]
 FROM Employees E
+INNER JOIN Departments D
+ON D.DepartmentID = E.DepartmentID
+INNER JOIN dbo.Addresses A
+ON A.AddressID = E.AddressID
+INNER JOIN dbo.Towns T
+ON T.TownID = A.TownID
+GROUP BY D.Name, T.Name
+ORDER BY D.Name ASC
+
+SELECT 	
+	T.Name AS [Town],
+	D.Name AS [Department],	
+	COUNT(E.EmployeeID) AS [Employees Count]
+FROM Employees E
 JOIN Departments D
 ON D.DepartmentID = E.DepartmentID
 JOIN dbo.Addresses A
 ON A.AddressID = E.AddressID
 JOIN dbo.Towns T
-ON T.TownID = A.TownID
-GROUP BY D.Name, T.Name
-ORDER BY D.Name ASC
-
-SELECT 
-	T.Name AS Town, 
-	D.Name AS Department,
-	COUNT(E.EmployeeID) AS [Employees Count]
-FROM Employees E
-INNER JOIN Departments D
-ON D.DepartmentID = E.DepartmentID
-INNER JOIN Addresses A
-ON A.AddressID = E.AddressID
-INNER JOIN Towns T
 ON T.TownID = A.TownID
 GROUP BY D.Name, T.Name
 ORDER BY D.Name ASC
@@ -202,18 +200,19 @@ Use the built-in LEN(str) function.*/
 
 SELECT 
 	E.FirstName, 
-	E.LastName
+	E.LastName,
+	LEN(E.LastName) AS [Last name length]
 FROM dbo.Employees E
 WHERE LEN(E.LastName) = 5
 
 SELECT 
-	E.FirstName, 
-	E.LastName , 
+	E.FirstName + ' ' + E.LastName AS [Employee],
+	LEN(E.LastName) AS [Employee last name length],
 	M.FirstName + ' ' + M.LastName AS [Manager]
 FROM Employees E
 INNER JOIN Employees M
 ON M.EmployeeID = E.ManagerID
-WHERE LEN(E.LastName) = 5 AND LEN(E.FirstName) = 5
+WHERE LEN(E.LastName) = 5
 
 /*Problem 14.	Write a SQL query to display the current date and time in the following format 
 "day.month.year hour:minutes:seconds:milliseconds". 
@@ -229,76 +228,113 @@ for the table fields. Define a primary key column with a primary key constraint.
 column as identity to facilitate inserting records. Define unique constraint to avoid repeating usernames.
 Define a check constraint to ensure the password is at least 5 characters long.*/
 
+/*Problem 16.	Write a SQL statement to create a view that displays the users from the Users table
+that have been in the system today. Test if the view works correctly.*/
+
+/*Problem 17.	Write a SQL statement to create a table Groups. 
+Groups should have unique name (use unique constraint). Define primary key and identity column.*/
+
+/*Problem 18.	Write a SQL statement to add a column GroupID to the table Users.
+Fill some data in this new column and as well in the Groups table. Write a SQL statement
+to add a foreign key constraint between tables Users and Groups tables.*/
+
+/*Problem 19.	Write SQL statements to insert several records in the Users and Groups tables.*/
+
+/*Problem 20.	Write SQL statements to update some of the records in the Users and Groups tables.*/
+
+/*Problem 21.	Write SQL statements to delete some of the records from the Users and Groups tables.*/
+
+/*Problem 22.	Write SQL statements to insert in the Users table the names of all employees from
+the Employees table. Combine the first and last names as a full name. For username use the first letter
+of the first name + the last name (in lowercase). Use the same for the password, and NULL for last login time.*/
+
+/*Problem 23.	Write a SQL statement that changes the password to NULL for all users that have
+not been in the system since 10.03.2010.*/
+
+/*Problem 24.	Write a SQL statement that deletes all users without passwords (NULL password).*/
 
 
 
+/*Problem 25.	Write a SQL query to display the average employee salary by department and job title.*/
 
-/*Problem 16.	Write a SQL statement to create a view that displays the users from the Users table that have been in the system today.
-Test if the view works correctly.
-You should submit a SQL file as a part of your homework.
-Problem 17.	Write a SQL statement to create a table Groups. 
-Groups should have unique name (use unique constraint). Define primary key and identity column.
-You should submit a SQL file as a part of your homework.
-Problem 18.	Write a SQL statement to add a column GroupID to the table Users.
-Fill some data in this new column and as well in the Groups table. Write a SQL statement to add a foreign key constraint between tables Users and Groups tables.
-You should submit a SQL file as a part of your homework.
-Problem 19.	Write SQL statements to insert several records in the Users and Groups tables.
-You should submit a SQL file as a part of your homework.
-Problem 20.	Write SQL statements to update some of the records in the Users and Groups tables.
-You should submit a SQL file as a part of your homework.
-Problem 21.	Write SQL statements to delete some of the records from the Users and Groups tables.
-You should submit a SQL file as a part of your homework.
-Problem 22.	Write SQL statements to insert in the Users table the names of all employees from the Employees table.
-Combine the first and last names as a full name. For username use the first letter of the first name + the last name (in lowercase). Use the same for the password, and NULL for last login time.
-You should submit a SQL file as a part of your homework.
-Problem 23.	Write a SQL statement that changes the password to NULL for all users that have not been in the system since 10.03.2010.
-You should submit a SQL file as a part of your homework.
-Problem 24.	Write a SQL statement that deletes all users without passwords (NULL password).
-You should submit a SQL file as a part of your homework.
-Problem 25.	Write a SQL query to display the average employee salary by department and job title.
-Department	Job Title	Average Salary
-Finance	Accountant	26400.00
-Finance	Accounts Manager	34700.00
-Finance	Accounts Payable Specialist	19000.00
-Finance	Accounts Receivable Specialist	19000.00
-…	…	…
+SELECT 
+	D.Name AS [Department],
+	E.JobTitle AS [Job Title],
+	AVG(E.Salary) AS [Average Salary]
+FROM Employees E
+INNER JOIN Departments D
+ON D.DepartmentID = E.DepartmentID
+GROUP BY D.Name, E.JobTitle
 
-You should submit a SQL file as a part of your homework.
-Problem 26.	Write a SQL query to display the minimal employee salary by department and job title along with the name of some of the employees that take it.
-Department	Job Title	First Name	Min Salary
-Engineering	Engineering Manager	Roberto	43300.00
-Engineering	Senior Design Engineer	Michael	36100.00
-Engineering	Vice President of Engineering	Terri	63500.00
-Executive	Chief Executive Officer	Ken	125500.00
-…	…		…
+/*Problem 26.	Write a SQL query to display the minimal employee salary by department and job title along
+with the name of some of the employees that take it.*/
 
-You should submit a SQL file as a part of your homework.
-Problem 27.	Write a SQL query to display the town where maximal number of employees work.
-Name	Number of employees
-Seattle	44
+SELECT 
+	D.Name AS [Department], 
+	E.JobTitle AS [Job Title],
+	E.FirstName,
+	MIN(E.Salary) AS [Min Salary]
+FROM Employees E
+INNER JOIN Departments D
+ON D.DepartmentID = E.DepartmentID
+WHERE E.Salary = 
+	(SELECT MIN(Salary) FROM Employees 
+	 WHERE DepartmentID = E.DepartmentID 
+	 AND JobTitle = E.JobTitle)
+GROUP BY D.Name, E.JobTitle, E.FirstName
+ORDER BY D.Name, E.JobTitle
 
-You should submit a SQL file as a part of your homework.
-Problem 28.	Write a SQL query to display the number of managers from each town.
+/*Problem 27.	Write a SQL query to display the town where maximal number of employees work.*/
+
+SELECT TOP 1
+	T.Name AS [Town],
+	COUNT(E.EmployeeID) AS [Number of employees]
+FROM Employees E
+INNER JOIN Addresses A
+ON A.AddressID = E.AddressID
+INNER JOIN Towns T
+ON T.TownID = A.TownID
+GROUP BY T.Name
+ORDER BY [Number of employees] DESC
+
+/*Problem 28.	Write a SQL query to display the number of managers from each town.*/
+
+SELECT 
+	T.Name AS [Town],
+	COUNT(DISTINCT M.EmployeeID) AS [Number of managers]
+FROM Towns T
+INNER JOIN Addresses A
+ON A.TownID = T.TownID
+INNER JOIN Employees E
+ON E.AddressID = A.AddressID
+INNER JOIN Employees M 
+ON M.EmployeeID = E.ManagerID
+GROUP BY T.Name
+ORDER BY T.Name
+
+/*
 Town	Number of managers
 Issaquah	3
 Kenmore	5
 Monroe	2
 Newport Hills	1
+*/
 
-You should submit a SQL file as a part of your homework.
-Problem 29.	Write a SQL to create table WorkHours to store work reports for each employee.
-Each employee should have id, date, task, hours and comments. Don't forget to define identity, primary key and appropriate foreign key.
-You should submit a SQL file as a part of your homework.
-Problem 30.	Issue few SQL statements to insert, update and delete of some data in the table.
-You should submit a SQL file as a part of your homework.
-Problem 31.	Define a table WorkHoursLogs to track all changes in the WorkHours table with triggers.
-For each change keep the old record data, the new record data and the command (insert / update / delete).
-You should submit a SQL file as a part of your homework.
-Problem 32.	Start a database transaction, delete all employees from the 'Sales' department along with all dependent records from the pother tables. At the end rollback the transaction.
-You should submit a SQL file as a part of your homework.
-Problem 33.	Start a database transaction and drop the table EmployeesProjects.
-Then how you could restore back the lost table data?
-You should submit a SQL file as a part of your homework.
-Problem 34.	Find how to use temporary tables in SQL Server.
-Using temporary tables backup all records from EmployeesProjects and restore them back after dropping and re-creating the table.
-You should submit a SQL file as a part of your homework.
+/*Problem 29.	Write a SQL to create table WorkHours to store work reports for each employee.
+Each employee should have id, date, task, hours and comments. Don't forget to define identity,
+primary key and appropriate foreign key.*/
+
+/*Problem 30.	Issue few SQL statements to insert, update and delete of some data in the table.*/
+
+/*Problem 31.	Define a table WorkHoursLogs to track all changes in the WorkHours table with triggers.
+For each change keep the old record data, the new record data and the command (insert / update / delete).*/
+
+/*Problem 32.	Start a database transaction, delete all employees from the 'Sales' department
+along with all dependent records from the pother tables. At the end rollback the transaction.*/
+
+/*Problem 33.	Start a database transaction and drop the table EmployeesProjects.
+Then how you could restore back the lost table data?*/
+
+/*Problem 34.	Find how to use temporary tables in SQL Server.
+Using temporary tables backup all records from EmployeesProjects and restore them back 
+after dropping and re-creating the table.*/
