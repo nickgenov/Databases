@@ -288,12 +288,9 @@ INSERT INTO Groups VALUES ('Team2')
 INSERT INTO Groups VALUES ('Team3')
 INSERT INTO Groups VALUES ('Team4')
 GO
-SELECT * FROM Groups
 
 ALTER TABLE Users
 	ADD CONSTRAINT FK_Users_Groups FOREIGN KEY(GroupID) REFERENCES Groups(ID)
-
-SELECT * FROM Users
 
 /*Problem 19.	Write SQL statements to insert several records in the Users and Groups tables.*/
 
@@ -303,21 +300,67 @@ INSERT INTO Groups (Name) VALUES ('Team6')
 
 INSERT INTO Users (Username, Password, FullName, LastLogin, GroupID) 
 	VALUES ('Mincho', '987654321', 'Mincho Petrov', DATEADD(DAY, -14, GETDATE()), 2)
+INSERT INTO Users (Username, Password, FullName, LastLogin, GroupID) 
+	VALUES ('Stamat', '987654321', 'Stamat Stamatov', DATEADD(DAY, -4, GETDATE()), 2)
 
 /*Problem 20.	Write SQL statements to update some of the records in the Users and Groups tables.*/
 
+UPDATE Users SET GroupID = 3 WHERE Username LIKE 'Gosho%'
+UPDATE Groups SET Name = 'Team Ontario' WHERE ID = 1
+
 /*Problem 21.	Write SQL statements to delete some of the records from the Users and Groups tables.*/
+
+--SELECT * FROM Groups
+--SELECT * FROM Users
+
+DELETE FROM Groups WHERE ID > 4
+DELETE FROM Users WHERE Username = 'Stamat'
 
 /*Problem 22.	Write SQL statements to insert in the Users table the names of all employees from
 the Employees table. Combine the first and last names as a full name. For username use the first letter
 of the first name + the last name (in lowercase). Use the same for the password, and NULL for last login time.*/
 
+ALTER TABLE Users
+ALTER COLUMN LastLogin DATE NULL
+
+--SELECT * FROM Employees
+--SELECT * FROM Users
+
+BEGIN TRAN
+GO
+DECLARE @Count INT = 1, @MaxCount INT = (SELECT COUNT(EmployeeID) FROM Employees)
+
+WHILE (@Count <= @MaxCount)
+BEGIN
+	DECLARE @FullName NVARCHAR(100), @Username NVARCHAR(100)
+	SET @FullName = (SELECT FirstName + ' ' + LastName FROM Employees WHERE EmployeeID = @Count)
+	SET @Username = (SELECT LOWER(SUBSTRING(FirstName, 1, 1) + LastName) FROM Employees WHERE EmployeeID = @Count)
+	
+	INSERT INTO Users (Username, Password, FullName, LastLogin, GroupID) VALUES (@Username, @Username, @FullName, NULL, NULL)
+
+	SET @Count = @Count + 1
+END
+GO
+ROLLBACK TRAN
+
+COMMIT TRAN
+
 /*Problem 23.	Write a SQL statement that changes the password to NULL for all users that have
 not been in the system since 10.03.2010.*/
 
+UPDATE Users SET LastLogin = '2009-03-10' WHERE ID < 20
+
+ALTER TABLE Users
+ALTER COLUMN Password NVARCHAR(100) NULL
+
+UPDATE Users SET Password = NULL WHERE LastLogin <= '2010-03-10'
+
 /*Problem 24.	Write a SQL statement that deletes all users without passwords (NULL password).*/
 
-
+--SELECT * FROM Users WHERE Password IS NULL
+BEGIN TRAN
+DELETE FROM Users WHERE Password IS NULL
+COMMIT TRAN
 
 /*Problem 25.	Write a SQL query to display the average employee salary by department and job title.*/
 
@@ -387,6 +430,8 @@ Newport Hills	1
 /*Problem 29.	Write a SQL to create table WorkHours to store work reports for each employee.
 Each employee should have id, date, task, hours and comments. Don't forget to define identity,
 primary key and appropriate foreign key.*/
+
+
 
 /*Problem 30.	Issue few SQL statements to insert, update and delete of some data in the table.*/
 
