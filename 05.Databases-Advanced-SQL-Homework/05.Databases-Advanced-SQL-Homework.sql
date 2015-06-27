@@ -228,17 +228,81 @@ for the table fields. Define a primary key column with a primary key constraint.
 column as identity to facilitate inserting records. Define unique constraint to avoid repeating usernames.
 Define a check constraint to ensure the password is at least 5 characters long.*/
 
+CREATE TABLE Users (
+	ID INT IDENTITY,
+	Username NVARCHAR(50) NOT NULL UNIQUE,
+	Password NVARCHAR(50) NOT NULL CHECK (LEN(Password) >= 5),
+	FullName NVARCHAR(100) NOT NULL,
+	LastLogin DATE NOT NULL
+	CONSTRAINT PK_Users PRIMARY KEY (ID)
+)
+
+--DROP TABLE Users
+--DELETE FROM USERS
+
+GO
+INSERT INTO Users (Username, Password, FullName, LastLogin) VALUES ('Petar', 'Petar', 'Petar Petrov', GETDATE())
+INSERT INTO Users (Username, Password, FullName, LastLogin) VALUES ('Ivan', '12345', 'Ivan Ivanov', GETDATE())
+INSERT INTO Users (Username, Password, FullName, LastLogin) VALUES ('Minka', 'parolata', 'Minka Petkova', GETDATE())
+INSERT INTO Users (Username, Password, FullName, LastLogin) VALUES ('Gosho', 'cska123', 'Georgi Georgiev', GETDATE())
+INSERT INTO Users (Username, Password, FullName, LastLogin) VALUES ('Pencho12', '123456789', 'Pencho Georgiev', '2015-06-25')
+INSERT INTO Users (Username, Password, FullName, LastLogin) VALUES ('Gosho1', '654321', 'Georgi Penchev', '2015-06-21')
+GO
+
+SELECT * FROM Users
+SELECT GETDATE()
+
 /*Problem 16.	Write a SQL statement to create a view that displays the users from the Users table
 that have been in the system today. Test if the view works correctly.*/
 
+GO
+CREATE VIEW UsersLoggedToday AS
+SELECT Username, FullName FROM Users WHERE LastLogin = CONVERT(DATE, GETDATE()) 
+GO
+
+--DROP VIEW UsersLoggedToday
+SELECT * FROM UsersLoggedToday
+
 /*Problem 17.	Write a SQL statement to create a table Groups. 
 Groups should have unique name (use unique constraint). Define primary key and identity column.*/
+
+CREATE TABLE Groups (
+	ID INT IDENTITY NOT NULL,
+	Name NVARCHAR(100) UNIQUE NOT NULL,
+	CONSTRAINT PK_Groups PRIMARY KEY (ID)
+)
+
+SELECT * FROM Groups
 
 /*Problem 18.	Write a SQL statement to add a column GroupID to the table Users.
 Fill some data in this new column and as well in the Groups table. Write a SQL statement
 to add a foreign key constraint between tables Users and Groups tables.*/
 
+ALTER TABLE Users ADD GroupID INT
+--ALTER TABLE Groups DROP COLUMN GroupID
+
+TRUNCATE TABLE Groups
+GO
+INSERT INTO Groups VALUES ('Team1')
+INSERT INTO Groups VALUES ('Team2')
+INSERT INTO Groups VALUES ('Team3')
+INSERT INTO Groups VALUES ('Team4')
+GO
+SELECT * FROM Groups
+
+ALTER TABLE Users
+	ADD CONSTRAINT FK_Users_Groups FOREIGN KEY(GroupID) REFERENCES Groups(ID)
+
+SELECT * FROM Users
+
 /*Problem 19.	Write SQL statements to insert several records in the Users and Groups tables.*/
+
+GO
+INSERT INTO Groups (Name) VALUES ('Team5')
+INSERT INTO Groups (Name) VALUES ('Team6')
+
+INSERT INTO Users (Username, Password, FullName, LastLogin, GroupID) 
+	VALUES ('Mincho', '987654321', 'Mincho Petrov', DATEADD(DAY, -14, GETDATE()), 2)
 
 /*Problem 20.	Write SQL statements to update some of the records in the Users and Groups tables.*/
 
