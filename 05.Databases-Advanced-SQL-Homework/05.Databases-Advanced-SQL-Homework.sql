@@ -462,11 +462,55 @@ DELETE FROM WorkHours WHERE DATE = CONVERT(DATE, GETDATE()) AND Task LIKE 'Task%
 /*Problem 31.	Define a table WorkHoursLogs to track all changes in the WorkHours table with triggers.
 For each change keep the old record data, the new record data and the command (insert / update / delete).*/
 
+BEGIN TRAN
+CREATE TABLE WorkHoursLogs (
+	ID INT IDENTITY NOT NULL,
+	WorkHoursID INT NOT NULL,
+	Date DATE NOT NULL,
+	Task NVARCHAR(500) NOT NULL,
+	Hours INT NOT NULL,
+	Comments NVARCHAR(MAX),
+	EmployeeID INT NOT NULL,
+	Command NVARCHAR(6) NOT NULL
+	CONSTRAINT PK_WorkHoursLogs PRIMARY KEY (ID)
+)
+COMMIT TRAN
+
+SELECT * FROM WorkHoursLogs
+
+BEGIN TRAN
+--CREATE TRIGGER WorkHoursTrigger ON WorkHours FOR DELETE, INSERT, UPDATE AS
 
 
 
 
+--INSERT INTO WorkHours (Date, Task, Hours, Comments, EmployeeID) VALUES (GETDATE(), 'Task1', 2, NULL, 34)
+/*
 
+CREATE TRIGGER TableTrigger ON OriginalTable FOR DELETE, INSERT, UPDATE AS
+
+DECLARE @NOW DATETIME
+SET @NOW = CURRENT_TIMESTAMP
+
+UPDATE HistoryTable
+   SET EndDate = @now
+  FROM HistoryTable, DELETED
+ WHERE HistoryTable.ColumnID = DELETED.ColumnID
+   AND HistoryTable.EndDate IS NULL
+
+INSERT INTO HistoryTable (ColumnID, Column2, ..., Columnn, StartDate, EndDate)
+SELECT ColumnID, Column2, ..., Columnn, @NOW, NULL
+  FROM INSERTED
+
+IF OBJECT_ID ('Sales.reminder1', 'TR') IS NOT NULL
+   DROP TRIGGER Sales.reminder1;
+GO
+CREATE TRIGGER reminder1
+ON Sales.Customer
+AFTER INSERT, UPDATE 
+AS RAISERROR ('Notify Customer Relations', 16, 10);
+GO
+*/
 
 
 /*Problem 32.	Start a database transaction, delete all employees from the 'Sales' department
