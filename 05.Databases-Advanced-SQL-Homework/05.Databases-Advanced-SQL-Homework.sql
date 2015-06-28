@@ -342,8 +342,33 @@ BEGIN
 END
 GO
 ROLLBACK TRAN
-
 COMMIT TRAN
+
+
+SELECT * FROM Users
+GO
+ALTER TABLE Users 
+ALTER COLUMN Username NVARCHAR(50) NOT NULL
+GO
+ALTER TABLE Users 
+ALTER COLUMN Password NVARCHAR(50) NOT NULL
+GO
+
+BEGIN TRAN
+DELETE FROM Users
+
+INSERT INTO Users (Username, Password, FullName, LastLogin, GroupID) 
+	SELECT 
+		LOWER(SUBSTRING(FirstName, 1, 1) + LastName),
+		LOWER(SUBSTRING(FirstName, 1, 1) + LastName) + '123456',
+		FirstName + ' ' + LastName,
+		NULL,
+		NULL 
+		FROM Employees
+
+ROLLBACK TRAN
+COMMIT TRAN
+
 
 /*Problem 23.	Write a SQL statement that changes the password to NULL for all users that have
 not been in the system since 10.03.2010.*/
