@@ -419,30 +419,92 @@ ON M.EmployeeID = E.ManagerID
 GROUP BY T.Name
 ORDER BY T.Name
 
-/*
-Town	Number of managers
-Issaquah	3
-Kenmore	5
-Monroe	2
-Newport Hills	1
-*/
-
 /*Problem 29.	Write a SQL to create table WorkHours to store work reports for each employee.
 Each employee should have id, date, task, hours and comments. Don't forget to define identity,
 primary key and appropriate foreign key.*/
 
-
+BEGIN TRAN
+CREATE TABLE WorkHours (
+	ID INT IDENTITY NOT NULL,
+	Date DATE NOT NULL,
+	Task NVARCHAR(500) NOT NULL,
+	Hours INT NOT NULL,
+	Comments NVARCHAR(MAX),
+	EmployeeID INT NOT NULL
+	CONSTRAINT PK_WorkHours PRIMARY KEY (ID)
+	CONSTRAINT FK_WorkHours_Employees
+		FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
+)
+COMMIT TRAN
 
 /*Problem 30.	Issue few SQL statements to insert, update and delete of some data in the table.*/
+
+SELECT * FROM WorkHours
+
+BEGIN TRAN
+GO
+INSERT INTO WorkHours (Date, Task, Hours, Comments, EmployeeID) VALUES (GETDATE(), 'Task1', 2, NULL, 34)
+INSERT INTO WorkHours (Date, Task, Hours, Comments, EmployeeID) VALUES (GETDATE(), 'Task2', 4, NULL, 33)
+INSERT INTO WorkHours (Date, Task, Hours, Comments, EmployeeID) VALUES (GETDATE(), 'Task3', 5, NULL, 25)
+INSERT INTO WorkHours (Date, Task, Hours, Comments, EmployeeID) VALUES (GETDATE(), 'Task4', 6, NULL, 66)
+INSERT INTO WorkHours (Date, Task, Hours, Comments, EmployeeID) VALUES (GETDATE(), 'Task5', 21, NULL, 55)
+INSERT INTO WorkHours (Date, Task, Hours, Comments, EmployeeID) VALUES (GETDATE(), 'Task6', 3, NULL, 33)
+INSERT INTO WorkHours (Date, Task, Hours, Comments, EmployeeID) VALUES (GETDATE(), 'Task7', 66, NULL, 42)
+INSERT INTO WorkHours (Date, Task, Hours, Comments, EmployeeID) VALUES (GETDATE(), 'Task8', 54, NULL, 72)
+GO
+COMMIT TRAN
+
+UPDATE WorkHours SET Hours = 5 WHERE Hours > 5
+UPDATE WorkHours SET Date = DATEADD(DAY, -2, GETDATE()) WHERE EmployeeID = 33 AND HOURS > 1
+
+DELETE FROM WorkHours WHERE DATE = CONVERT(DATE, GETDATE()) AND Task LIKE 'Task%'
 
 /*Problem 31.	Define a table WorkHoursLogs to track all changes in the WorkHours table with triggers.
 For each change keep the old record data, the new record data and the command (insert / update / delete).*/
 
+
+
+
+
+
+
+
 /*Problem 32.	Start a database transaction, delete all employees from the 'Sales' department
-along with all dependent records from the pother tables. At the end rollback the transaction.*/
+along with all dependent records from the other tables. At the end rollback the transaction.*/
+
+SELECT * FROM Employees 
+WHERE DepartmentID IN 
+	(SELECT DepartmentID FROM Departments WHERE Name = 'Sales')
+
+BEGIN TRAN
+
+GO
+ALTER TABLE Departments
+DROP CONSTRAINT FK_Departments_Employees
+GO
+ALTER TABLE Employees
+ADD CONSTRAINT FK_Departments_Employees FOREIGN KEY (DepartmentID)
+	REFERENCES Departments (DepartmentID)
+	ON DELETE CASCADE 
+GO
+
+DELETE FROM Employees 
+WHERE DepartmentID IN 
+	(SELECT DepartmentID FROM Departments WHERE Name = 'Sales')
+
+ROLLBACK TRAN
+
+COMMIT TRAN
 
 /*Problem 33.	Start a database transaction and drop the table EmployeesProjects.
 Then how you could restore back the lost table data?*/
+
+SELECT * FROM EmployeesProjects
+
+BEGIN TRAN
+DROP TABLE EmployeesProjects
+
+ROLLBACK TRAN
 
 /*Problem 34.	Find how to use temporary tables in SQL Server.
 Using temporary tables backup all records from EmployeesProjects and restore them back 
