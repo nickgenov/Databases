@@ -8,7 +8,8 @@
 
 
 
---EXEC sp_who
+EXEC sp_who
+
 USE SoftUni
 GO
 
@@ -23,6 +24,6 @@ GO
 DECLARE @EmpID VARCHAR(11),
 	@LastName CHAR(20)
 SET @LastName = 'King'
-SELECT @EmpID = EmployeeID FROM Employees
+SELECT @EmpID = EmployeeID FROM Employees --SELECT ALSO ASSIGNS THE VARIABLE
 WHERE LastName = @LastName
 SELECT @EmpID AS EmployeeID
