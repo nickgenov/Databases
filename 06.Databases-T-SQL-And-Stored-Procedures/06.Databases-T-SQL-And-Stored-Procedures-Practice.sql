@@ -312,31 +312,9 @@ SELECT 'The result is: ', @Answer AS Result
 
 -------------------------------
 --RETURN
-USE SoftUni
-
-GO
-CREATE PROC usp_NewEmployee(
-  @firstName nvarchar(50), @lastName nvarchar(50),
-  @jobTitle nvarchar(50), @deptId int, @salary money)
-AS
-  INSERT INTO Employees(FirstName, LastName, 
-    JobTitle, DepartmentID, HireDate, Salary)
-  VALUES (@firstName, @lastName, @jobTitle, @deptId,
-    GETDATE(), @salary)
-  RETURN SCOPE_IDENTITY()
-GO
-
-DECLARE @newEmployeeId int
-EXEC @newEmployeeId = usp_NewEmployee
-  @firstName='Steve', @lastName='Jobs', @jobTitle='Trainee',
-  @deptId=1, @salary=7500
-SELECT EmployeeID, FirstName, LastName
-FROM Employees
-WHERE EmployeeId = @newEmployeeId
-
-
 SELECT * FROM Customers
 
+/*
 GO
 ALTER TABLE Customers
 ADD Date DATE NULL
@@ -355,6 +333,7 @@ AS
 		(FirstName, LastName, Manager, Date) VALUES --INVALID COLUMN NAME DATE?!
 		(@FirstName, @LastName, @Manager, GETDATE())
 GO
+*/
 
 DROP TABLE Customers
 
@@ -370,7 +349,7 @@ CREATE TABLE Customers (
 
 USE SoftUni
 GO
-ALTER PROCEDURE usp_NewCustomer
+CREATE PROCEDURE usp_NewCustomer
 	@FirstName NVARCHAR(50),
 	@LastName NVARCHAR(50),
 	@Manager NVARCHAR(100),
@@ -379,4 +358,20 @@ AS
 	INSERT INTO Customers 
 		(FirstName, LastName, Manager, Date) VALUES --Now Date is valid, why?
 		(@FirstName, @LastName, @Manager, GETDATE())
+	RETURN SCOPE_IDENTITY()
 GO
+
+BEGIN TRAN
+
+DECLARE @newCustomerID INT
+EXEC @newCustomerID = usp_NewCustomer
+  @FirstName = 'Steve', 
+  @LastName = 'Jobs', 
+  @Manager = 'Nakov',
+  @Date = '1-1-2015'
+SELECT ID, FirstName, LastName, Manager, Date
+FROM Customers
+WHERE ID = @newCustomerID
+
+COMMIT TRAN
+
