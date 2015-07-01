@@ -663,3 +663,43 @@ SELECT * FROM dbo.ufn_ListEmployees ('long')
 
 ------------------------------------------------
 --CURSORS
+/*
+DECLARE empCursor CURSOR READ_ONLY FOR
+  SELECT FirstName, LastName FROM Employees
+
+OPEN empCursor
+DECLARE @firstName char(50), @lastName char(50)
+FETCH NEXT FROM empCursor INTO @firstName, @lastName
+
+WHILE @@FETCH_STATUS = 0
+  BEGIN
+    PRINT @firstName + ' ' + @lastName
+    FETCH NEXT FROM empCursor 
+    INTO @firstName, @lastName
+  END
+
+CLOSE empCursor
+DEALLOCATE empCursor
+*/
+
+DECLARE empCursor CURSOR READ_ONLY FOR
+	SELECT  E.FirstName + ' ' + E.LastName AS [Employee],
+		 M.FirstName + ' ' + M.LastName AS [Manager]
+	FROM dbo.Employees E
+	INNER JOIN dbo.Employees M
+	ON M.EmployeeID = E.ManagerID
+
+OPEN empCursor
+
+DECLARE @Employee NVARCHAR(100), @Manager NVARCHAR(100)
+FETCH NEXT FROM empCursor INTO @Employee, @Manager
+--PRINT @Employee + '''s manager is ' + @Manager
+
+WHILE @@FETCH_STATUS = 0
+	BEGIN		
+		PRINT @Employee + '''s manager is ' + @Manager
+		FETCH NEXT FROM empCursor INTO @Employee, @Manager
+	END
+
+CLOSE empCursor
+DEALLOCATE empCursor
