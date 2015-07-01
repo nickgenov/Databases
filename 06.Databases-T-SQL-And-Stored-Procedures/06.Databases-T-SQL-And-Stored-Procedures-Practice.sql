@@ -460,11 +460,206 @@ DELETE FROM ACCOUNTS
 SELECT * FROM ACCOUNTS
 
 ---------------------
+--DROP TABLE Managers
 
 CREATE TABLE Managers (
 	ID INT IDENTITY NOT NULL,
 	FullName NVARCHAR(100) NOT NULL,
 	Age INT NOT NULL,
+	IsActive CHAR(1) NOT NULL DEFAULT 'Y'
 	CONSTRAINT PK_Managers PRIMARY KEY (ID)
 )
 
+
+GO
+CREATE TRIGGER tr_Managers ON Managers
+INSTEAD OF DELETE
+AS
+	UPDATE M SET IsActive = 'N' 
+	FROM Managers M
+	INNER JOIN DELETED D
+	ON D.ID = M.ID 
+	WHERE M.IsActive = 'Y'
+GO
+
+INSERT INTO Managers (FullName, Age, IsActive) VALUES
+	('Yasen Petrov', 33, 'Y'),
+	('Ivan Petrov', 44, 'Y'),
+	('Minko Petrov', 35, 'Y'),
+	('Minka Petrova', 32, 'Y'),
+	('Stamat Stamatov', 36, 'Y')
+
+SELECT * FROM Managers
+
+DELETE FROM MANAGERS
+
+GO
+CREATE TRIGGER Tr_ManagersInsert ON Managers FOR INSERT
+AS
+	IF (EXISTS (SELECT ID FROM Managers WHERE LEN(FullName) > 20))		
+		BEGIN
+			RAISERROR ('Manager name cannot be over 20 letters!', 16, 1)
+			ROLLBACK TRAN
+			RETURN
+		END
+GO
+
+--DROP TRIGGER Tr_ManagersInsert
+
+INSERT INTO dbo.Managers
+        (FullName, Age, IsActive)
+VALUES  	
+	('Yasen Petrov Petrov Petrov Petrov Petrov', 55, 'Y')
+
+
+-----------------------------
+
+SELECT SQRT(10)
+
+SELECT SUM(TownID) FROM dbo.Towns
+
+------------------------------
+--USER DEFINED FUNCTION
+GO
+CREATE FUNCTION ufn_CalculateBonus(@Salary MONEY) RETURNS MONEY
+AS
+	BEGIN
+		RETURN @Salary * 0.1
+	END
+GO
+
+GO
+CREATE FUNCTION ufn_CalcBonus(@salary MONEY)
+  RETURNS MONEY
+AS
+BEGIN
+  IF (@salary < 10000)
+    RETURN 1000
+  ELSE IF (@salary BETWEEN 10000 and 30000)
+    RETURN @salary / 20
+  RETURN 3500
+END
+GO
+
+--DROP FUNCTION ufn_CalculateBonus
+--DROP FUNCTION ufn_CalcBonus
+
+
+SELECT Salary, dbo.ufn_CalculateBonus(Salary) FROM dbo.Employees E
+
+SELECT Salary, dbo.ufn_CalcBonus(Salary) as Bonus
+FROM Employees
+
+---------------------------------------
+
+GO
+CREATE TABLE EmployeeSalaries (
+	ID INT IDENTITY NOT NULL,
+	FullName NVARCHAR(100) NOT NULL,
+	Salary MONEY NOT NULL
+	CONSTRAINT PK_EmployeesSalaries PRIMARY KEY(ID DESC)
+)
+GO
+
+GO
+CREATE FUNCTION ufn_CalculateBonus(@Salary MONEY) RETURNS MONEY
+AS
+	BEGIN 
+		RETURN @Salary * 0.5
+	END
+GO
+
+INSERT INTO EmployeeSalaries (FullName, Salary) VALUES
+	('Petar Petrov', 1000),
+	('Ivan Petrov', 1500)
+
+SELECT 
+	FulLName, 
+	dbo.ufn_CalculateBonus(Salary) AS Bonus
+FROM EmployeeSalaries
+
+SELECT dbo.ufn_CalculateBonus(1000) 
+
+----------------------------------------------
+--RETURN TABLE
+
+/*
+SELECT 
+	E.FirstName + ' ' + E.LastName AS [Employee Name],
+	M.FirstName + ' ' + M.LastName AS [Manager Name],
+	D.Name AS [Department]
+FROM dbo.Employees E
+INNER JOIN dbo.Employees M
+ON M.EmployeeID = E.ManagerID
+INNER JOIN dbo.Departments D
+ON D.DepartmentID = E.DepartmentID
+WHERE E.JobTitle = 'Stocker'
+*/
+
+/*
+USE SoftUni
+GO
+CREATE FUNCTION ufn_EmployeeInfoForJobTitle(@JobTitle NVARCHAR(50))
+RETURNS TABLE
+AS
+	RETURN (
+	SELECT 
+		E.FirstName + ' ' + E.LastName AS [Employee Name],
+		M.FirstName + ' ' + M.LastName AS [Manager Name],
+		D.Name AS [Department]
+	FROM dbo.Employees E
+	INNER JOIN dbo.Employees M
+	ON M.EmployeeID = E.ManagerID
+	INNER JOIN dbo.Departments D
+	ON D.DepartmentID = E.DepartmentID
+	WHERE E.JobTitle = @JobTitle
+	)
+GO
+*/
+
+USE SoftUni
+GO
+CREATE FUNCTION ufn_EmployeeInfoForJobTitle(@JobTitle NVARCHAR(100))
+RETURNS TABLE
+AS
+	RETURN (
+		SELECT 
+		E.FirstName + ' ' + E.LastName AS [Employee Name],
+		M.FirstName + ' ' + M.LastName AS [Manager Name],
+		D.Name AS [Department]
+	FROM dbo.Employees E
+	INNER JOIN dbo.Employees M
+	ON M.EmployeeID = E.ManagerID
+	INNER JOIN dbo.Departments D
+	ON D.DepartmentID = E.DepartmentID
+	WHERE E.JobTitle = @JobTitle		
+	)
+GO
+
+SELECT * FROM ufn_EmployeeInfoForJobTitle(N'Stocker')
+SELECT * FROM ufn_EmployeeInfoForJobTitle(N'Sales')
+------------------------------------------------------
+--MULTI-STATEMENT TABLE VALUED FUNCTION
+
+USE SoftUni
+GO
+CREATE FUNCTION ufn_ListEmployees (@Format NVARCHAR(10))
+RETURNS @Tbl_EmployeesList TABLE
+	(EmployeeID INT PRIMARY KEY NOT NULL,
+	[Employee Name]	NVARCHAR(100) NOT NULL)
+AS
+BEGIN
+	IF @Format = 'short'
+		INSERT @Tbl_EmployeesList
+		SELECT EmployeeID, LastName FROM dbo.Employees
+	ELSE IF @Format = 'long'
+		INSERT @Tbl_EmployeesList
+		SELECT EmployeeID, FirstName + ' ' + LastName FROM dbo.Employees
+	RETURN
+END
+GO
+
+SELECT * FROM dbo.ufn_ListEmployees ('long')
+
+------------------------------------------------
+--CURSORS
