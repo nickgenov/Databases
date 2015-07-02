@@ -219,6 +219,8 @@ WHERE LEN(E.LastName) = 5
 Search in Google to find how to format dates in SQL Server.
 DateTIme 11.02.2015 18:50:02:960*/
 
+SELECT CONVERT(varchar, GETDATE(), 104) + ' ' + RIGHT(CONVERT(varchar, GETDATE(), 113), 12) AS [DateTime]
+
 SELECT CONVERT(VARCHAR(24),GETDATE(),113) AS [DateTime] --Europe default + milliseconds dd mon yyyy hh:mi:ss:mmm(24h)
 SELECT CONVERT(VARCHAR(24),GETDATE(),104) AS [DateTime] --German
 
@@ -571,3 +573,30 @@ ROLLBACK TRAN
 /*Problem 34.	Find how to use temporary tables in SQL Server.
 Using temporary tables backup all records from EmployeesProjects and restore them back 
 after dropping and re-creating the table.*/
+
+USE SoftUni
+SELECT * FROM dbo.EmployeesProjects
+
+BEGIN TRAN
+
+CREATE TABLE #TempeEmployeesProjects ( 
+	EmployeeID INT NOT NULL, 
+	ProjectID INT NOT NULL )
+
+INSERT INTO #TempeEmployeesProjects (EmployeeID, ProjectID)
+	SELECT EmployeeID, ProjectID FROM dbo.EmployeesProjects
+
+DROP TABLE EmployeesProjects
+
+CREATE TABLE EmployeesProjects ( 
+	EmployeeID INT NOT NULL, 
+	ProjectID INT NOT NULL )
+
+INSERT INTO EmployeesProjects (EmployeeID, ProjectID)
+	SELECT EmployeeID, ProjectID FROM #TempeEmployeesProjects
+
+DROP TABLE #TempeEmployeesProjects
+
+SELECT * FROM EmployeesProjects
+
+ROLLBACK TRAN
