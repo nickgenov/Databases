@@ -219,8 +219,8 @@ WHERE LEN(E.LastName) = 5
 Search in Google to find how to format dates in SQL Server.
 DateTIme 11.02.2015 18:50:02:960*/
 
-SELECT CONVERT(VARCHAR(24),GETDATE(),113) AS [DateTime]
---Europe default + milliseconds dd mon yyyy hh:mi:ss:mmm(24h)
+SELECT CONVERT(VARCHAR(24),GETDATE(),113) AS [DateTime] --Europe default + milliseconds dd mon yyyy hh:mi:ss:mmm(24h)
+SELECT CONVERT(VARCHAR(24),GETDATE(),104) AS [DateTime] --German
 
 /*Problem 15.	Write a SQL statement to create a table Users.
 Users should have username, password, full name and last login time. Choose appropriate data types
@@ -501,42 +501,37 @@ CREATE TABLE WorkHoursLogs (
 )
 COMMIT TRAN
 
-SELECT * FROM WorkHoursLogs
-
 BEGIN TRAN
---CREATE TRIGGER WorkHoursTrigger ON WorkHours FOR DELETE, INSERT, UPDATE AS
-
-
-
-
---INSERT INTO WorkHours (Date, Task, Hours, Comments, EmployeeID) VALUES (GETDATE(), 'Task1', 2, NULL, 34)
-/*
-
-CREATE TRIGGER TableTrigger ON OriginalTable FOR DELETE, INSERT, UPDATE AS
-
-DECLARE @NOW DATETIME
-SET @NOW = CURRENT_TIMESTAMP
-
-UPDATE HistoryTable
-   SET EndDate = @now
-  FROM HistoryTable, DELETED
- WHERE HistoryTable.ColumnID = DELETED.ColumnID
-   AND HistoryTable.EndDate IS NULL
-
-INSERT INTO HistoryTable (ColumnID, Column2, ..., Columnn, StartDate, EndDate)
-SELECT ColumnID, Column2, ..., Columnn, @NOW, NULL
-  FROM INSERTED
-
-IF OBJECT_ID ('Sales.reminder1', 'TR') IS NOT NULL
-   DROP TRIGGER Sales.reminder1;
 GO
-CREATE TRIGGER reminder1
-ON Sales.Customer
-AFTER INSERT, UPDATE 
-AS RAISERROR ('Notify Customer Relations', 16, 10);
+CREATE TRIGGER tr_WorkHoursInsert ON WorkHours FOR INSERT
+AS
+	INSERT INTO dbo.WorkHoursLogs (WorkHoursID, Date, Task, HOURS, Comments, EmployeeID, Command) 	
+		SELECT I.ID, I.Date, I.Task, I.Hours, I.Comments, I.EmployeeID, 'INSERT' FROM INSERTED I
 GO
-*/
 
+CREATE TRIGGER tr_WorkHoursDelete ON WorkHours FOR DELETE
+AS
+	INSERT INTO dbo.WorkHoursLogs (WorkHoursID, Date, Task, HOURS, Comments, EmployeeID, Command) 
+		SELECT D.ID, D.Date, D.Task, D.Hours, D.Comments, D.EmployeeID, 'DELETE' FROM DELETED D
+GO
+
+CREATE TRIGGER tr_WorkHoursUpdate ON WorkHours FOR UPDATE
+AS
+	INSERT INTO dbo.WorkHoursLogs (WorkHoursID, Date, Task, HOURS, Comments, EmployeeID, Command) 
+		SELECT U.ID, U.Date, U.Task, U.Hours, U.Comments, U.EmployeeID, 'UPDATE' FROM INSERTED U
+GO
+COMMIT TRAN
+
+INSERT INTO WorkHours (Date, Task, Hours, Comments, EmployeeID) VALUES (GETDATE(), 'Task1', 2, NULL, 34)
+INSERT INTO WorkHours (Date, Task, Hours, Comments, EmployeeID) VALUES (GETDATE(), 'Task2', 4, NULL, 33)
+INSERT INTO WorkHours (Date, Task, Hours, Comments, EmployeeID) VALUES (GETDATE(), 'Task3', 5, NULL, 25)
+INSERT INTO WorkHours (Date, Task, Hours, Comments, EmployeeID) VALUES (GETDATE(), 'Task4', 6, NULL, 66)
+
+UPDATE WorkHours SET Hours = 5 WHERE Hours > 5
+UPDATE WorkHours SET Date = DATEADD(DAY, -2, GETDATE()) WHERE EmployeeID = 33 AND HOURS > 1
+DELETE FROM WorkHours WHERE DATE = CONVERT(DATE, GETDATE()) AND Task LIKE 'Task%'
+
+SELECT * FROM WorkHoursLogs
 
 /*Problem 32.	Start a database transaction, delete all employees from the 'Sales' department
 along with all dependent records from the other tables. At the end rollback the transaction.*/
@@ -562,8 +557,6 @@ WHERE DepartmentID IN
 	(SELECT DepartmentID FROM Departments WHERE Name = 'Sales')
 
 ROLLBACK TRAN
-
-COMMIT TRAN
 
 /*Problem 33.	Start a database transaction and drop the table EmployeesProjects.
 Then how you could restore back the lost table data?*/
