@@ -159,9 +159,11 @@ USE TransactSQL
 GO
 CREATE PROCEDURE usp_WithdrawMoney (@AccountID INT, @Amount MONEY)
 AS
-	UPDATE Accounts 
-	SET Balance = Balance - @Amount 
-	WHERE ID = @AccountID
+	BEGIN TRAN
+		UPDATE Accounts 
+		SET Balance = Balance - @Amount 
+		WHERE ID = @AccountID
+	COMMIT TRAN
 GO
 
 SELECT ID, Balance FROM Accounts WHERE ID = 1
@@ -172,10 +174,11 @@ USE TransactSQL
 GO
 CREATE PROCEDURE usp_DepositMoney (@AccountID INT, @Amount MONEY)
 AS
-	UPDATE Accounts 
-	SET Balance = Balance + @Amount 
-	WHERE ID = @AccountID
-	
+	BEGIN TRAN
+		UPDATE Accounts 
+		SET Balance = Balance + @Amount 
+		WHERE ID = @AccountID
+	COMMIT TRAN
 GO	
 
 SELECT ID, Balance FROM Accounts WHERE ID = 1
@@ -205,14 +208,10 @@ GO
 CREATE TRIGGER tr_AccountsChange ON Accounts FOR INSERT, DELETE, UPDATE
 AS
 	BEGIN
-	DECLARE @AccountID INT, @OldSum MONEY, @NewSum MONEY
-
-	SET @AccountID = (SELECT I.ID FROM INSERTED I)
-	SET @NewSum = (SELECT I.Balance FROM INSERTED I)
-	SET @OldSum = (SELECT D.Balance FROM DELETED D)
-
-	INSERT INTO Logs (AccountID, OldSum, NewSum) VALUES
-		(@AccountID, @OldSum, @NewSum)
+		INSERT INTO Logs (AccountID, OldSum, NewSum)
+		
+		SELECT D.Id, D.Balance, I.Balance
+		FROM DELETED D, INSERTED I
 
 	END
 GO
@@ -221,7 +220,7 @@ SELECT * FROM Accounts
 SELECT * FROM Logs
 
 UPDATE Accounts SET Balance = 10000 WHERE ID = 1
-UPDATE Accounts SET Balance = 20000 --PROBLEM WHEN UPDATIGN MORE THAN ONE ROW, FIX IT!
+UPDATE Accounts SET Balance = 20000 --PROBLEM WHEN UPDATING MORE THAN ONE ROW, FIX IT!
 
 SELECT * FROM Accounts
 SELECT * FROM Logs
@@ -234,35 +233,110 @@ Define a function in the database SoftUni that returns all Employee's names
 Example: 'oistmiahf' will return 'Sofia', 'Smith', but not 'Rob' and 'Guy'.
 */
 
+USE SoftUni
+
+GO
+CREATE FUNCTION ufn_ContainingLetters (@Word nvarchar(50), @Letters nvarchar(50))
+RETURNS bit
+AS
+BEGIN
+	DECLARE @WordLength int;
+	DECLARE @Counter int;
+	DECLARE @CurrentLetter nvarchar(1);
+
+	SET @Counter = 1;
+	SET @WordLength = LEN(@Word);
+
+	-- Check Input
+	IF @WordLength = 0 OR @Word IS NULL
+		RETURN 0;
+	WHILE @Counter <= @WordLength
+		BEGIN
+			SET @CurrentLetter = SUBSTRING(@Word, @Counter, 1);
+			IF CHARINDEX(@CurrentLetter, @Letters) = 0
+				BEGIN
+					RETURN 0;
+				END
+			SET @Counter = @Counter + 1;
+		END
+	RETURN 1;
+END
+GO
+
+CREATE FUNCTION ufn_FindEmployeesContainingLetters ( @Letters nvarchar(50) )
+RETURNS TABLE
+AS
+RETURN
+	SELECT emp.FirstName, emp.MiddleName, emp.LastName, Towns.Name AS Town
+	FROM Employees AS emp
+	JOIN Addresses AS adr
+	ON emp.AddressID = adr.AddressID
+	JOIN Towns
+	ON adr.TownID = Towns.TownID
+	WHERE 
+		dbo.ufn_ContainingLetters(LOWER(Towns.Name), @Letters) = 1
+		AND (
+			dbo.ufn_ContainingLetters(LOWER(emp.FirstName), @Letters) = 1
+			OR 
+			dbo.ufn_ContainingLetters(LOWER(ISNULL(emp.MiddleName, '')), @Letters) = 1
+			OR 
+			dbo.ufn_ContainingLetters(LOWER(emp.LastName), @Letters) = 1
+			)
+GO
+
+SELECT * FROM ufn_FindEmployeesContainingLetters('oistmiahf')
+
+GO
+
 /*
 Problem 8.	Using database cursor write a T-SQL
 Using database cursor write a T-SQL script that scans all employees and their 
 addresses and prints all pairs of employees that live in the same town.
 */
 
+DECLARE Employees_Cursor CURSOR READ_ONLY FOR
+ 
+SELECT fe.FirstName, fe.LastName, ft.Name AS [Town Name], se.FirstName, se.LastName
+FROM Employees fe
+JOIN Addresses fa
+ON fe.AddressID = fa.AddressID
+JOIN Towns ft
+ON fa.TownID = ft.TownID
+CROSS JOIN Employees se
+JOIN Addresses sa
+ON se.AddressID = sa.AddressID
+JOIN Towns st
+ON sa.TownID = st.TownID
+WHERE ft.Name = st.Name AND fe.EmployeeID != se.EmployeeID
+ORDER BY fe.FirstName, se.FirstName
+ 
+OPEN Employees_Cursor
+DECLARE @firstName1 NVARCHAR(50), @lastName1 NVARCHAR(50), @town NVARCHAR(50), 
+	@firstName2 NVARCHAR(50), @lastName2 NVARCHAR(50)
 
-
-
-/*
-Wood: John Wood Redmond John
-Hill: John Wood Redmond Annette
-Feng: John Wood Redmond Hanying
-Sousa: John Wood Redmond Anibal
-Glimp: John Wood Redmond Diane
-Pournasseh: John Wood Redmond Houman
-Kane: John Wood Redmond Lori
-…
-*/
-
-
+FETCH NEXT FROM Employees_Cursor INTO 
+	@firstName1, @lastName1, @town, @firstName2, @lastName2
+ 
+WHILE @@FETCH_STATUS = 0
+BEGIN
+	PRINT 
+		@town + ': ' + 
+		@firstName1 + ' ' + @lastName1 +
+		', ' +
+		@firstName2 + ' ' + @lastName2
+	FETCH NEXT FROM Employees_Cursor INTO
+		@firstName1, @lastName1, @town, @firstName2, @lastName2
+END
+ 
+CLOSE Employees_Cursor
+DEALLOCATE Employees_Cursor
 
 /*
 Problem 9.	Define a .NET aggregate function
 Define a .NET aggregate function StrConcat that takes as input a sequence of strings 
 and return a single string that consists of the input strings separated by ','. 
 For example the following SQL statement should return a single string:
-SELECT StrConcat (FirstName + ' ' + LastName)
-FROM Employees
+SELECT StrConcat (FirstName + ' ' + LastName) FROM Employees
 */
 
 /*
