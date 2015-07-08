@@ -279,12 +279,11 @@ ORDER BY [Answers Count] DESC
 
 /*
 Problem 13.	Answers for the users from town
+
 1.	Create a table Towns(Id, Name). Use auto-increment for the primary key. 
 Add a new column TownId in the Users table to link each user to some town 
 (non-mandatory link). Create a foreign key between the Users and Towns tables.
 */
-
-BEGIN TRAN
 
 USE Forum
 CREATE TABLE Towns (
@@ -296,8 +295,6 @@ CREATE TABLE Towns (
 ALTER TABLE Users
 	ADD TownId INT NULL
 	CONSTRAINT FK_Users_Towns FOREIGN KEY (TownID) REFERENCES Towns (ID)
-
-COMMIT TRAN
 
 /*
 2.	Execute the following SQL script (it should pass without any errors):
@@ -317,12 +314,87 @@ Steps:
 3.	Add where statement where check the day of the week (You can use DATEPART function).
 */
 
-SELECT *
-FROM dbo.Users
-WHERE DATEPART(weekday, RegistrationDate) = 6
-
-BEGIN TRAN
 UPDATE dbo.Users 
 SET TownId = (SELECT Id FROM Towns WHERE Name = 'Paris')
 WHERE DATEPART(weekday, RegistrationDate) = 6
-COMMIT TRAN
+
+/*
+4.	Write and execute a SQL command that changes the question to “Java += operator” of Answers, 
+answered at Monday or Sunday in February.
+Steps:
+1.	Write update statement by Answers table.
+2.	Get QuestionId with nested select statement.
+3.	Add where filter (You can check the day of week with DATEPART function and the month with MONTH function).
+*/
+
+UPDATE Answers
+SET QuestionId = (SELECT Id FROM Questions WHERE Title = 'Java += operator')
+WHERE DATEPART(MONTH, CreatedOn) = 2
+	AND DATEPART(WEEKDAY, CreatedOn) IN (1, 2)
+
+/*
+5.	Delete all answers with negative sum of votes.
+Steps:
+1.	Create temporary table [#AnswerIds] with one column AnswerId (int)
+2.	Insert into [#AnswerIds] table all answer ids where sum of answer votes are negative number.
+3.	Delete votes where sum of answer votes are negative number.
+4.	Delete answers which ids are in table [#AnswerIds]
+5.	Drop temporary table [#AnswerIds]
+Hint: Think how to delete votes with answers.
+*/
+
+GO
+CREATE TABLE #AnswerIds (
+	AnswerId INT NOT NULL
+)
+
+INSERT INTO #AnswerIds (AnswerId) 
+	SELECT A.ID
+	FROM Answers A
+	INNER JOIN Votes V
+	ON V.AnswerId = A.Id
+	GROUP BY A.Id
+	HAVING SUM(V.Value) < 0
+GO
+
+DELETE FROM Votes
+WHERE AnswerId IN (SELECT AnswerId FROM #AnswerIds)
+
+DELETE FROM Answers
+WHERE Id IN (SELECT AnswerId FROM #AnswerIds)
+
+DROP TABLE #AnswerIds
+
+/*
+6.	Add a new question holding the following information: Title="Fetch NULL values in PDO query", 
+Content="When I run the snippet, NULL values are converted to empty strings. How can fetch NULL values?", 
+CreatedOn={current date and time}, Owner="darkcat", Category="Databases".
+Hint: You can use GETDATE function for current datetime and nested select statements for user id and category id.
+*/
+
+INSERT INTO Questions (Title, Content, CategoryId, UserId, CreatedOn) VALUES
+	('Fetch NULL values in PDO query', 
+	'When I run the snippet, NULL values are converted to empty strings. How can fetch NULL values?',
+	(SELECT Id FROM Categories WHERE Name = 'Databases'),
+	(SELECT Id FROM Users WHERE Username = 'darkcat'),
+	GETDATE())
+
+/*
+7.	Find the count of the answers for the users from town. Display the town name, username and answers count. 
+Sort the results by answers count in descending order, then by username. Name the columns exactly like in the table below. 
+*/
+
+SELECT 
+	T.Name AS [Town],
+	U.Username,
+	COUNT(A.Id) AS [AnswersCount]
+FROM Answers A
+FULL OUTER JOIN Users U
+ON U.Id = A.UserId
+FULL OUTER JOIN Towns T
+ON T.Id = U.TownId
+GROUP BY T.Name, U.Username
+ORDER BY 
+	[AnswersCount] DESC, 
+	U.Username ASC
+
