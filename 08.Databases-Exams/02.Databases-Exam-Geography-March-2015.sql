@@ -146,78 +146,14 @@ Submit for evaluation the result grid with headers.
 
 SELECT 
 	C.CountryName, 
-	CN.ContinentName,	
-	COUNT(R.RiverName) AS [RiversCount],
-	ISNULL (SUM(R.Length), 0) AS [TotalLength]
+	CN.ContinentName,
+	R.RiverName,
+	R.Length
 FROM dbo.Rivers R
 INNER JOIN dbo.CountriesRivers CR
 ON CR.RiverId = R.Id
-RIGHT OUTER JOIN dbo.Countries C
+INNER JOIN dbo.Countries C
 ON C.CountryCode = CR.CountryCode
 INNER JOIN dbo.Continents CN
 ON CN.ContinentCode = C.ContinentCode
-GROUP BY C.CountryName, CN.ContinentName
-ORDER BY 
-	[RiversCount] DESC,
-	[TotalLength] DESC,
-	C.CountryName ASC
 
-/*
-Problem 10.	Count of Countries by Currency
-Find the number of countries for each currency. Display three columns: 
-currency code, currency description and number of countries. 
-Sort the results by number of countries (from highest to lowest), 
-then by currency description alphabetically. Name the columns exactly 
-like in the table below. Submit for evaluation the result grid with headers.
-*/
-
-SELECT 
-	CR.CurrencyCode, 
-	CR.Description AS [Currency], 
-	COUNT(C.CountryName) AS [NumberOfCountries]
-FROM Countries C
-RIGHT OUTER JOIN Currencies CR
-ON CR.CurrencyCode = C.CurrencyCode
-GROUP BY CR.CurrencyCode, CR.Description
-ORDER BY [NumberOfCountries] DESC
-
-
-SELECT
-  cur.CurrencyCode,
-  MIN(cur.Description) AS Currency,
-  COUNT(c.CountryName) AS NumberOfCountries
-FROM
-  Currencies cur
-  LEFT JOIN Countries c ON cur.CurrencyCode = c.CurrencyCode
-GROUP BY cur.CurrencyCode
-ORDER BY NumberOfCountries DESC, Currency ASC
-
-
-/*
-Problem 11.	* Population and Area by Continent
-For each continent, display the total area and total population of all its countries. Sort the results by population from highest to lowest. Submit for evaluation the result grid with headers.
-*/
-
-SELECT 
-	CN.ContinentName, 
-	SUM(C.AreaInSqKm) AS [CountriesArea], 
-	SUM(CAST(C.Population AS BIGINT)) AS [ContriesPopulation]
-FROM Countries C
-INNER JOIN Currencies CR
-ON CR.CurrencyCode = C.CurrencyCode
-INNER JOIN Continents CN
-ON CN.ContinentCode = C.ContinentCode
-GROUP BY CN.ContinentName
-ORDER BY [ContriesPopulation] DESC
-
-----------------------------
-
-SELECT
-  ct.ContinentName,
-  SUM(CONVERT(numeric, c.AreaInSqKm)) AS CountriesArea,
-  SUM(CONVERT(numeric, c.Population)) AS CountriesPopulation
-FROM
-  Countries c
-  LEFT JOIN Continents ct ON ct.ContinentCode = c.ContinentCode
-GROUP BY ct.ContinentName
-ORDER BY CountriesPopulation DESC
