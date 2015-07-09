@@ -128,3 +128,95 @@ Sort the results by number of teams (from largest to smallest), then by numbers 
 Name the columns exactly like in the table below.
 */
 
+SELECT 
+	L.LeagueName AS [League Name],
+	COUNT(DISTINCT T.TeamName) AS [Teams],
+	(SELECT COUNT(Id) FROM dbo.TeamMatches WHERE LeagueId = L.Id) AS [Matches],
+	ISNULL((SELECT (SUM(HomeGoals) + SUM(AwayGoals)) / COUNT(Id) FROM dbo.TeamMatches WHERE LeagueId = L.Id), 0) AS [Average Goals]
+FROM dbo.Leagues L
+LEFT OUTER JOIN dbo.Leagues_Teams LT ON LT.LeagueId = L.Id
+LEFT OUTER JOIN dbo.Teams T ON T.Id = LT.TeamId
+LEFT OUTER JOIN dbo.TeamMatches TM ON TM.LeagueId = L.Id
+GROUP BY L.LeagueName, L.Id
+ORDER BY [Teams] DESC, [Matches] DESC
+
+SELECT
+  l.LeagueName AS [League Name],
+  COUNT(DISTINCT lt.TeamId) AS [Teams],
+  COUNT(DISTINCT tm.Id) AS [Matches],
+  ISNULL(AVG(tm.HomeGoals + tm.AwayGoals), 0) AS [Average Goals]
+FROM Leagues l
+LEFT JOIN Leagues_Teams lt ON l.Id = lt.LeagueId
+LEFT JOIN TeamMatches tm ON tm.LeagueId = l.Id
+GROUP BY l.LeagueName
+ORDER BY Teams DESC, Matches DESC
+
+/*
+Problem 9.	Total Goals per Team in all Matches
+Find the number of goals for each Team from all matches played. Sort the results by number of goals 
+(from highest to lowest), then by team name alphabetically. Name the columns exactly like in the table below.
+*/
+
+SELECT 
+	T.TeamName,
+	ISNULL(SUM(A.AwayGoals), 0) + ISNULL(SUM(H.HomeGoals), 0) AS [Total Goals]
+FROM dbo.Teams T
+LEFT OUTER JOIN dbo.TeamMatches A ON A.AwayTeamId = T.Id
+LEFT OUTER JOIN dbo.TeamMatches H ON H.HomeTeamId = T.Id
+GROUP BY T.TeamName
+ORDER BY [Total Goals] DESC, T.TeamName ASC
+
+SELECT
+  t.TeamName,
+  ISNULL(SUM(tm1.HomeGoals), 0) + ISNULL(SUM(tm2.AwayGoals), 0) AS [Total Goals]
+FROM Teams t
+LEFT JOIN TeamMatches tm1 on tm1.HomeTeamId = t.Id
+LEFT JOIN TeamMatches tm2 on tm2.AwayTeamId = t.Id
+GROUP BY t.TeamName
+ORDER BY [Total Goals] DESC, TeamName
+
+--WHY 0 POINTS?!
+
+/*
+Problem 10.	Pairs of Matches on the Same Day
+Find all pairs of team matches that are on the same day. Show the date and time of each pair. 
+Sort the dates from the newest to the oldest first date, then from the newest to the oldest second date.
+Name the columns exactly like in the table below.
+*/
+
+SELECT 
+	F.MatchDate AS [First Date], 
+	S.MatchDate AS [Second Date]
+FROM dbo.TeamMatches F, dbo.TeamMatches S
+WHERE 
+	F.MatchDate < S.MatchDate
+	AND CAST(F.MatchDate AS DATE) = CAST(S.MatchDate AS DATE)
+ORDER BY [First Date] DESC, [Second Date] DESC
+
+SELECT 
+	F.MatchDate AS [First Date], 
+	S.MatchDate AS [Second Date]
+FROM dbo.TeamMatches F, dbo.TeamMatches S
+WHERE 
+	F.MatchDate < S.MatchDate
+	AND DATEDIFF(DAY, F.MatchDate, S.MatchDate) < 1
+ORDER BY [First Date] DESC, [Second Date] DESC
+
+/*
+Problem 11.	Mix of Team Names
+Combine all team names with one another (including itself), so that the last letter of the first team name 
+is the same as the first letter of the reversed second team name. 
+Sort the results by the obtained mix alphabetically.
+*/
+
+SELECT LOWER(SUBSTRING(F.TeamName, 1, LEN(F.TeamName) - 1) + REVERSE(S.TeamName)) AS Mix
+FROM dbo.Teams F, dbo.Teams S
+WHERE SUBSTRING(F.TeamName, LEN(F.TeamName), 1) = SUBSTRING(REVERSE(S.TeamName), 1, 1)
+ORDER BY Mix ASC
+
+--SELECT SUBSTRING(TeamName, 1, 1), TeamName, SUBSTRING(TeamName, LEN(TeamName), 1) FROM dbo.Teams
+
+SELECT LOWER(SUBSTRING(t1.teamname, 1, LEN(t1.TeamName) - 1) +  REVERSE(t2.TeamName)) AS Mix
+FROM Teams t1, Teams t2
+WHERE RIGHT(t1.TeamName, 1) = RIGHT(t2.TeamName, 1)
+ORDER BY Mix
