@@ -1,4 +1,4 @@
-USE Geography
+﻿USE Geography
 
 /*
 Problem 1.	All Mountain Peaks
@@ -372,4 +372,146 @@ Problem 15.	Monasteries by Country
 
 1.	Create a table Monasteries(Id, Name, CountryCode). Use auto-increment for the primary key. 
 Create a foreign key between the tables Monasteries and Countries.
+*/
+
+USE Geography
+GO
+
+BEGIN TRAN
+
+GO
+CREATE TABLE Monasteries (
+	Id INT IDENTITY NOT NULL,
+	Name NVARCHAR(100) NOT NULL,
+	CountryCode CHAR(2) NOT NULL
+	CONSTRAINT PK_Id PRIMARY KEY(Id)
+)
+GO
+
+ALTER TABLE Monasteries
+	ADD CONSTRAINT FK_Monasteries_Countries FOREIGN KEY(CountryCode) 
+		REFERENCES Countries(CountryCode)
+GO
+	
+COMMIT
+
+/*
+2.	Execute the following SQL script (it should pass without any errors):
+*/
+
+INSERT INTO Monasteries(Name, CountryCode) VALUES
+('Rila Monastery “St. Ivan of Rila”', 'BG'), 
+('Bachkovo Monastery “Virgin Mary”', 'BG'),
+('Troyan Monastery “Holy Mother''s Assumption”', 'BG'),
+('Kopan Monastery', 'NP'),
+('Thrangu Tashi Yangtse Monastery', 'NP'),
+('Shechen Tennyi Dargyeling Monastery', 'NP'),
+('Benchen Monastery', 'NP'),
+('Southern Shaolin Monastery', 'CN'),
+('Dabei Monastery', 'CN'),
+('Wa Sau Toi', 'CN'),
+('Lhunshigyia Monastery', 'CN'),
+('Rakya Monastery', 'CN'),
+('Monasteries of Meteora', 'GR'),
+('The Holy Monastery of Stavronikita', 'GR'),
+('Taung Kalat Monastery', 'MM'),
+('Pa-Auk Forest Monastery', 'MM'),
+('Taktsang Palphug Monastery', 'BT'),
+('Sümela Monastery', 'TR')
+
+/*
+3.	Write a SQL command to add a new Boolean column IsDeleted in the Countries table (defaults to false). 
+Note that there is no "Boolean" type in SQL server, so you should use an alternative.
+*/
+
+GO
+ALTER TABLE Countries
+	ADD IsDeleted BIT DEFAULT 0
+GO
+
+UPDATE Countries SET IsDeleted = 0
+
+/*
+4.	Write and execute a SQL command to mark as deleted all countries that have more than 3 rivers.
+*/
+
+SELECT *
+FROM Countries 
+WHERE CountryCode IN
+	(SELECT 
+		C.CountryCode
+	FROM Countries C
+	INNER JOIN CountriesRivers CR ON CR.CountryCode = C.CountryCode
+	GROUP BY C.CountryCode
+	HAVING COUNT(CR.RiverId) > 3)
+
+UPDATE Countries 
+SET IsDeleted = 1
+WHERE CountryCode IN
+	(SELECT 
+		C.CountryCode
+	FROM Countries C
+	INNER JOIN CountriesRivers CR ON CR.CountryCode = C.CountryCode
+	GROUP BY C.CountryCode
+	HAVING COUNT(CR.RiverId) > 3)
+
+/*
+5.	Write a query to display all monasteries along with their countries sorted by monastery name. 
+Skip all deleted countries and their monasteries. Submit for evaluation the result grid with headers.
+*/
+
+SELECT 
+	M.Name AS [Monastery], 
+	C.CountryName AS [Country]
+FROM Monasteries M
+LEFT JOIN Countries C ON C.CountryCode = M.CountryCode
+WHERE C.IsDeleted = 0
+ORDER BY M.Name
+
+/*
+Problem 16.	Monasteries by Continents and Countries
+This problem assumes that the previous problem is completed successfully without errors.
+
+1.	Write and execute a SQL command that changes the country named "Myanmar" to its other name "Burma".
+*/
+
+SELECT * FROM Countries WHERE CountryName = 'Myanmar'
+UPDATE Countries SET CountryName = 'Burma' WHERE CountryName = 'Myanmar'
+
+/*
+2.	Add a new monastery holding the following information: Name="Hanga Abbey", Country="Tanzania".
+*/
+
+INSERT INTO Monasteries (Name, CountryCode) VALUES
+	('Hanga Abbey', (SELECT CountryCode FROM Countries WHERE CountryName = 'Tanzania'))
+
+/*
+3.	Add a new monastery holding the following information: Name="Myin-Tin-Daik", Country="Myanmar".
+*/
+
+INSERT INTO Monasteries (Name, CountryCode) VALUES
+	('Myin-Tin-Daik', (SELECT CountryCode FROM Countries WHERE CountryName = 'Myanmar'))
+
+/*
+4.	Find the count of monasteries for each continent and not deleted country. Display the continent name, 
+the country name and the count of monasteries. Include also the countries with 0 monasteries. 
+Sort the results by monasteries count (from largest to lowest), then by country name alphabetically. 
+Name the columns exactly like in the table below. Submit for evaluation the result grid with headers.
+*/
+
+SELECT 
+	CN.ContinentName, 
+	C.CountryName, 
+	COUNT(M.Id) AS [MonasteriesCount]
+FROM Continents CN
+INNER JOIN Countries C ON C.ContinentCode = CN.ContinentCode
+LEFT JOIN Monasteries M ON M.CountryCode = C.CountryCode
+WHERE C.IsDeleted = 0
+GROUP BY CN.ContinentName, C.CountryName
+ORDER BY [MonasteriesCount] DESC, C.CountryName ASC
+
+/*
+Problem 17.	Stored Function: Mountain Peaks JSON
+Create a stored function fn_MountainsPeaksJSON that lists all mountains alphabetically along with 
+all its peaks alphabetically. Format the output as JSON string without any whitespace.
 */
