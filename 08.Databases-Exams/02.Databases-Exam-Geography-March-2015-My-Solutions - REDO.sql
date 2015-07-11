@@ -515,3 +515,18 @@ Problem 17.	Stored Function: Mountain Peaks JSON
 Create a stored function fn_MountainsPeaksJSON that lists all mountains alphabetically along with 
 all its peaks alphabetically. Format the output as JSON string without any whitespace.
 */
+
+/*
+GO
+CREATE FUNCTION fn_MountainsPeaksJSON() RETURNS TABLE
+AS
+RETURN (
+	SELECT 
+		M.MountainRange AS name,
+		P.PeakName AS peaks
+	FROM Mountains M
+	JOIN Peaks P ON P.MountainId = M.Id
+	ORDER BY M.MountainRange, P.PeakName
+	)
+GO
+*/
