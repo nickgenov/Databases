@@ -516,17 +516,142 @@ Create a stored function fn_MountainsPeaksJSON that lists all mountains alphabet
 all its peaks alphabetically. Format the output as JSON string without any whitespace.
 */
 
+SELECT 
+	M.MountainRange AS name,
+	P.PeakName AS name,
+	P.Elevation AS elevation
+FROM Mountains M
+JOIN Peaks P ON P.MountainId = M.Id
+ORDER BY M.MountainRange, P.PeakName
+	
 /*
-GO
-CREATE FUNCTION fn_MountainsPeaksJSON() RETURNS TABLE
-AS
-RETURN (
-	SELECT 
-		M.MountainRange AS name,
-		P.PeakName AS peaks
-	FROM Mountains M
-	JOIN Peaks P ON P.MountainId = M.Id
-	ORDER BY M.MountainRange, P.PeakName
-	)
-GO
+DECLARE employeesCursor CURSOR READ_ONLY FOR
+	SELECT FirstName, LastName FROM Employees
+
+OPEN employeesCursor
+DECLARE @FirstName NVARCHAR(50), @LastName NVARCHAR(50)
+FETCH NEXT FROM employeesCursor INTO @FirstName, @LastName
+
+WHILE @@FETCH_STATUS = 0
+	BEGIN
+		PRINT @FirstName + ' ' + @LastName
+
+		FETCH NEXT FROM employeesCursor INTO @FirstName, @LastName
+	END
+
+CLOSE employeesCursor
+DEALLOCATE employeesCursor
 */
+IF OBJECT_ID('fn_MountainsPeaksJSON') IS NOT NULL
+  DROP FUNCTION fn_MountainsPeaksJSON
+GO
+CREATE FUNCTION fn_MountainsPeaksJSON() RETURNS NVARCHAR(MAX)
+AS
+BEGIN
+	DECLARE @JSON NVARCHAR(MAX) = '{"mountains":['
+
+	DECLARE mountainsCursor CURSOR FOR
+		SELECT Id, MountainRange FROM Mountains --ORDER BY MountainRange
+
+		OPEN mountainsCursor
+
+		DECLARE @MountainID INT
+		DECLARE @MountainName NVARCHAR(MAX)
+
+		FETCH NEXT FROM mountainsCursor INTO @MountainID, @MountainName
+		WHILE @@FETCH_STATUS = 0
+			BEGIN
+				SET @JSON = @JSON + '{"name":"' + @MountainName + '","peaks":['
+
+				DECLARE peaksCursor CURSOR FOR
+					SELECT PeakName, Elevation FROM Peaks WHERE MountainId = @MountainID
+
+					OPEN peaksCursor
+
+					DECLARE @PeakName NVARCHAR(MAX)
+					DECLARE @Elevation INT
+
+					FETCH NEXT FROM peaksCursor INTO @PeakName, @Elevation
+					WHILE @@FETCH_STATUS = 0
+						BEGIN
+							SET @JSON = @JSON + '{"name":"' + @PeakName + '","elevation":' + 
+								CONVERT(NVARCHAR(MAX), @Elevation) + '}'
+
+							FETCH NEXT FROM peaksCursor INTO @PeakName, @Elevation
+							IF @@FETCH_STATUS = 0
+								SET @JSON = @JSON + ','
+						END
+					CLOSE peaksCursor
+					DEALLOCATE peaksCursor
+
+					SET @JSON = @JSON + ']}'
+			
+				FETCH NEXT FROM mountainsCursor INTO @MountainID, @MountainName	
+				IF @@FETCH_STATUS = 0
+					SET @JSON = @JSON + ','
+			END
+
+			CLOSE mountainsCursor
+			DEALLOCATE mountainsCursor
+
+		SET @JSON = @JSON + ']}'
+	RETURN @JSON
+END
+GO
+
+-----------------------------------------------------------
+IF OBJECT_ID('fn_MountainsPeaksJSON') IS NOT NULL
+  DROP FUNCTION fn_MountainsPeaksJSON
+GO
+
+CREATE FUNCTION fn_MountainsPeaksJSON()
+	RETURNS NVARCHAR(MAX)
+AS
+BEGIN
+	DECLARE @json NVARCHAR(MAX) = '{"mountains":['
+
+	DECLARE montainsCursor CURSOR FOR
+	SELECT Id, MountainRange FROM Mountains
+
+	OPEN montainsCursor
+	DECLARE @mountainName NVARCHAR(MAX)
+	DECLARE @mountainId INT
+	FETCH NEXT FROM montainsCursor INTO @mountainId, @mountainName
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		SET @json = @json + '{"name":"' + @mountainName + '","peaks":['
+
+		DECLARE peaksCursor CURSOR FOR
+		SELECT PeakName, Elevation FROM Peaks
+		WHERE MountainId = @mountainId
+
+		OPEN peaksCursor
+		DECLARE @peakName NVARCHAR(MAX)
+		DECLARE @elevation INT
+		FETCH NEXT FROM peaksCursor INTO @peakName, @elevation
+		WHILE @@FETCH_STATUS = 0
+		BEGIN
+			SET @json = @json + '{"name":"' + @peakName + '",' +
+				'"elevation":' + CONVERT(NVARCHAR(MAX), @elevation) + '}'
+			FETCH NEXT FROM peaksCursor INTO @peakName, @elevation
+			IF @@FETCH_STATUS = 0
+				SET @json = @json + ','
+		END
+		CLOSE peaksCursor
+		DEALLOCATE peaksCursor
+		SET @json = @json + ']}'
+
+		FETCH NEXT FROM montainsCursor INTO @mountainId, @mountainName
+		IF @@FETCH_STATUS = 0
+			SET @json = @json + ','
+	END
+	CLOSE montainsCursor
+	DEALLOCATE montainsCursor
+
+	SET @json = @json + ']}'
+	RETURN @json
+END
+GO
+
+
+SELECT DBO.fn_MountainsPeaksJSON()
