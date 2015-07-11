@@ -348,3 +348,43 @@ GO
 SELECT * FROM DBO.ufn_EmployeeNamesForJobTitle('Stocker')
 
 ---------------------------------------------------------------
+GO
+CREATE FUNCTION ufn_ListEmployees (@Format NVARCHAR(5))
+	RETURNS @EmployeeTable TABLE (
+		EmployeeID INT NOT NULL PRIMARY KEY,
+		EmployeeName NVARCHAR(100) NOT NULL)
+AS
+BEGIN
+	IF @Format = 'short'
+		INSERT @EmployeeTable
+		SELECT EmployeeID, LastName FROM Employees
+	ELSE IF @Format = 'long'
+		INSERT @EmployeeTable
+		SELECT EmployeeID, (FirstName + ' ' + LastName) FROM Employees
+	RETURN
+END
+GO
+
+SELECT * FROM ufn_ListEmployees('long')
+
+SELECT * FROM ufn_ListEmployees('short')
+
+---------------------------------------------------------------------
+--CURSORS
+
+DECLARE employeesCursor CURSOR READ_ONLY FOR
+	SELECT FirstName, LastName FROM Employees
+
+OPEN employeesCursor
+DECLARE @FirstName NVARCHAR(50), @LastName NVARCHAR(50)
+FETCH NEXT FROM employeesCursor INTO @FirstName, @LastName
+
+WHILE @@FETCH_STATUS = 0
+	BEGIN
+		PRINT @FirstName + ' ' + @LastName
+
+		FETCH NEXT FROM employeesCursor INTO @FirstName, @LastName
+	END
+
+CLOSE employeesCursor
+DEALLOCATE employeesCursor

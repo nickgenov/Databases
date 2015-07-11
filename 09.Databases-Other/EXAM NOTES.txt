@@ -1,0 +1,54 @@
+CREATE PROCEDURE EmpDump AS
+  DECLARE @EmpId INT, @EmpFName NVARCHAR(100), @EmpLName NVARCHAR(100)
+  DECLARE emps CURSOR FOR
+    SELECT EmployeeID, FirstName, LastName FROM Employees
+  OPEN emps
+  FETCH NEXT FROM emps INTO @EmpId, @EmpFName, @EmpLName
+  WHILE (@@FETCH_STATUS = 0) BEGIN
+    PRINT CAST(@EmpId AS VARCHAR(10)) + ' ' 
+      + @EmpFName + ' ' + @EmpLName
+    FETCH NEXT FROM emps INTO @EmpId, @EmpFName, @EmpLName
+  END
+  CLOSE emps
+  DEALLOCATE emps
+GO
+
+
+---UNION, INTERSECT, EXCEPT
+--BETWEEN, IN, NOT IN, LIKE
+--% means 0 or more chars; _ means one char
+--IS NULL, IS NOT NULL
+
+
+SELECT TOP 5 * FROM Towns
+
+SELECT * FROM Towns
+ORDER BY Name 
+OFFSET 20 ROWS 
+FETCH NEXT 5 ROWS ONLY
+
+--Complex Join Conditions
+SELECT e.FirstName, e.LastName, d.Name as DeptName
+FROM Employees e
+  INNER JOIN Departments d
+  ON (e.DepartmentId = d.DepartmentId
+  AND e.HireDate > '1/1/1999'
+  AND d.Name IN ('Sales', 'Finance'))
+
+ /*
+Changing the character casing: LOWER(), UPPER()
+String manipulation functions: SUBSTRING(), LEN(), LEFT(), RIGHT(), TRIM(), REPLACE()
+Mathematical functions: ROUND, FLOOR, POWER, ABS, SQRT
+Date functions: GETDATE, DATEADD, DAY, MONTH, YEAR
+Conversion functions: CONVERT, CAST
+*/
+
+--We can aggregate strings with STUFF function.
+SELECT STUFF((
+    SELECT ', ' + Name 
+    FROM Towns 
+    FOR XML PATH('')), 1, 2, '') 
+AS Towns
+
+ 
+ 
