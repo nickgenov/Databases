@@ -388,3 +388,6 @@ WHILE @@FETCH_STATUS = 0
 
 CLOSE employeesCursor
 DEALLOCATE employeesCursor
+
+-----------------
+
