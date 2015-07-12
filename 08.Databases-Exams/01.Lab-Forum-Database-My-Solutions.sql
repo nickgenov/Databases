@@ -398,3 +398,122 @@ ORDER BY
 	[AnswersCount] DESC, 
 	U.Username ASC
 
+/*
+Problem 14.	Create a View and a Stored Function
+1.	Create a view "AllQuestions" in the database that holds information about questions and users 
+(use RIGHT OUTER JOIN): If you execute the following SQL query:
+SELECT * FROM AllAnswers
+*/
+
+USE Forum
+GO
+
+CREATE VIEW AllAnswers
+AS
+SELECT
+	U.Id as UId,
+	U.Username,
+	U.FirstName,
+	U.LastName,
+	U.Email,
+	U.PhoneNumber,
+	U.RegistrationDate,
+	Q.Id as QId,
+	Q.Title,
+	Q.Content,
+	Q.CategoryId,
+	Q.UserId,
+	Q.CreatedOn
+FROM
+  Questions Q
+  RIGHT OUTER JOIN Users u on Q.UserId = U.Id
+GO
+
+SELECT * FROM AllAnswers
+
+/*
+2.	Using the view above, create a stored function "fn_ListUsersQuestions" that returns a table, 
+holding all users in descending order as first column, along with all titles of their questions 
+(in ascending order), separated by ", " as second column.
+If your function is correct and you execute the following SQL query:
+
+SELECT * FROM fn_ ListUsersQuestions()
+*/
+
+IF (object_id(N'fn_ListUsersQuestions') IS NOT NULL)
+DROP FUNCTION fn_ListUsersQuestions
+GO
+
+CREATE FUNCTION fn_ListUsersQuestions()
+	RETURNS @tbl_UsersQuestions TABLE(
+		UserName NVARCHAR(MAX),
+		Questions NVARCHAR(MAX)
+	)
+AS
+BEGIN
+	DECLARE UsersCursor CURSOR FOR
+		SELECT Username FROM Users
+		ORDER BY Username;
+	OPEN UsersCursor;
+	DECLARE @username NVARCHAR(MAX);
+	FETCH NEXT FROM UsersCursor INTO @username;
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		DECLARE @questions NVARCHAR(MAX) = NULL;
+		SELECT
+			@questions = CASE
+				WHEN @questions IS NULL THEN CONVERT(NVARCHAR(MAX), Title, 112)
+				ELSE @questions + ', ' + CONVERT(NVARCHAR(MAX), Title, 112)
+			END
+		FROM AllAnswers
+		WHERE Username = @username
+		ORDER BY Title DESC;
+
+		INSERT INTO @tbl_UsersQuestions
+		VALUES(@username, @questions)
+		
+		FETCH NEXT FROM UsersCursor INTO @username;
+	END;
+	CLOSE UsersCursor;
+	DEALLOCATE UsersCursor;
+	RETURN;
+END
+GO
+
+SELECT * FROM fn_ListUsersQuestions()
+
+/*
+USE SoftUni
+GO
+CREATE FUNCTION ufn_EmployeeNamesForJobTitle (@JobTitle NVARCHAR(100))
+	RETURNS TABLE
+AS
+	RETURN (
+		SELECT 
+			FirstName, 
+			LastName 
+		FROM Employees
+		WHERE JobTitle = @JobTitle
+	)
+GO
+
+SELECT * FROM DBO.ufn_EmployeeNamesForJobTitle('Stocker')
+
+---------------------------------------------------------------
+GO
+CREATE FUNCTION ufn_ListEmployees (@Format NVARCHAR(5))
+	RETURNS @EmployeeTable TABLE (
+		EmployeeID INT NOT NULL PRIMARY KEY,
+		EmployeeName NVARCHAR(100) NOT NULL)
+AS
+BEGIN
+	IF @Format = 'short'
+		INSERT @EmployeeTable
+		SELECT EmployeeID, LastName FROM Employees
+	ELSE IF @Format = 'long'
+		INSERT @EmployeeTable
+		SELECT EmployeeID, (FirstName + ' ' + LastName) FROM Employees
+	RETURN
+END
+GO
+*/
