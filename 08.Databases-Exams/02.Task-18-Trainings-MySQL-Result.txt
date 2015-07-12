@@ -3,20 +3,20 @@ Sofia West Adult Trainings, 2014-12-31, English for beginners, 3-month English c
 Software Trainings Ltd., 2014-12-31, Avancée Français, French language: Level III
 Polyglot Language School, 2015-01-13, Spanish, Level II, Aprender Español
 Polyglot Language School, 2015-01-14, English for beginners, 3-month English course
-Software Trainings Ltd., 2015-01-18, HTML & CSS, 
+Software Trainings Ltd., 2015-01-18, HTML & CSS, NULL
 Sofia Learning, 2015-01-20, C# Programming, Intro C# corse for beginners
 Sofia Learning, 2015-01-24, Java Basics, Learn more at https://softuni.bg/courses/java-basics/
 Varna Innovations & Learning, 2015-02-07, English for beginners, 3-month English course
-Plovdiv Trainings & Inspiration, 2015-02-19, Salsa: First Steps, 
+Plovdiv Trainings & Inspiration, 2015-02-19, Salsa: First Steps, NULL
 Software Trainings Ltd., 2015-02-19, Databases, Introductionary course in databases, SQL, MySQL, SQL Server and MongoDB
 Varna Innovations & Learning, 2015-02-20, C# Programming, Intro C# corse for beginners
 Software Trainings Ltd., 2015-02-21, Java Basics, Learn more at https://softuni.bg/courses/java-basics/
 Plovdiv Trainings & Inspiration, 2015-02-22, English for beginners, 3-month English course
-Modern Dances Academy, 2015-02-25, Salsa: First Steps, 
+Modern Dances Academy, 2015-02-25, Salsa: First Steps, NULL
 Sofia Learning, 2015-02-26, English for beginners, 3-month English course
 Plovdiv Trainings & Inspiration, 2015-03-01, C# Programming, Intro C# corse for beginners
-Varna Innovations & Learning, 2015-03-12, HTML & CSS, 
-Sofia West Adult Trainings, 2015-03-16, HTML & CSS, 
+Varna Innovations & Learning, 2015-03-12, HTML & CSS, NULL
+Sofia West Adult Trainings, 2015-03-16, HTML & CSS, NULL
 Sofia Learning, 2015-03-23, Avancée Français, French language: Level III
 Plovdiv Trainings & Inspiration, 2015-03-25, Avancée Français, French language: Level III
-Plovdiv Trainings & Inspiration, 2015-04-10, HTML & CSS, 
+Plovdiv Trainings & Inspiration, 2015-04-10, HTML & CSS, NULL

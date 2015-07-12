@@ -79,8 +79,10 @@ CREATE TABLE `training_centers` (
 
 -- Dump completed on 2015-07-12 12:03:13
 
+use trainings;
+
 select 
-	tc.name as 'training center',
+	tc.name as 'traning center',
     t.start_date as 'start date',
     c.name as 'course name',
     c.description as 'more info'
@@ -88,3 +90,5 @@ from timetable t
 join training_centers tc on tc.id = t.training_center_id
 join courses c on c.id = t.course_id
 order by t.start_date asc, t.id asc;
+
+--COPY ROW (WITH NAMES), THEN REPLACE ' WITH EMPTY STRING!!!
