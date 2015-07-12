@@ -380,3 +380,83 @@ AS
 RETURN (
   SELECT Author FROM AllAds
 )
+
+/*
+Problem 17.	Create a View and a Stored Function
+Create a view "AllAds" in the database that holds information about ads: id, title, author (username),
+date, town name, category name and status, sorted by id. If you execute the following SQL query:
+
+SELECT * FROM AllAds
+*/
+
+USE Ads
+
+GO
+CREATE VIEW AllAds
+AS
+SELECT 
+  a.Id,
+  a.Title, 
+  u.UserName AS Author,
+  a.Date,
+  t.Name AS Town, 
+  c.Name AS Category,
+  s.Status AS Status
+FROM
+  Ads a
+  LEFT JOIN Towns t on a.TownId = t.Id
+  LEFT JOIN Categories c on a.CategoryId = c.Id
+  LEFT JOIN AdStatuses s on a.StatusId = s.Id
+  LEFT JOIN AspNetUsers u on u.Id = a.OwnerId
+GO
+
+SELECT * FROM AllAds
+
+/*
+1.	Using the view above, create a stored function "fn_ListUsersAds" that returns a table, 
+holding all users in descending order as first column, along with all dates of their ads 
+(in ascending order) in format "yyyyMMdd", separated by "; " as second column.
+If your function is correct and you execute the following SQL query:
+
+SELECT * FROM fn_ListUsersAds()
+*/
+
+USE Ads
+GO
+CREATE FUNCTION fn_ListUsersAds()
+	RETURNS @tbl_UsersAds TABLE(
+		UserName NVARCHAR(MAX),
+		AdDates NVARCHAR(MAX)
+	)
+AS
+BEGIN
+	DECLARE UsersCursor CURSOR FOR
+		SELECT UserName FROM AspNetUsers
+		ORDER BY UserName DESC;
+	OPEN UsersCursor;
+	DECLARE @username NVARCHAR(MAX);
+	FETCH NEXT FROM UsersCursor INTO @username;
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		DECLARE @ads NVARCHAR(MAX) = NULL;
+		SELECT
+			@ads = CASE
+				WHEN @ads IS NULL THEN CONVERT(NVARCHAR(MAX), Date, 112)
+				ELSE @ads + '; ' + CONVERT(NVARCHAR(MAX), Date, 112)
+			END
+		FROM AllAds
+		WHERE Author = @username
+		ORDER BY Date;
+
+		INSERT INTO @tbl_UsersAds
+		VALUES(@username, @ads)
+		
+		FETCH NEXT FROM UsersCursor INTO @username;
+	END;
+	CLOSE UsersCursor;
+	DEALLOCATE UsersCursor;
+	RETURN;
+END
+GO
+
+SELECT * FROM fn_ListUsersAds()
